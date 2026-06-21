@@ -19,7 +19,6 @@ class TaskController extends Controller
 
         $queue = Task::forUser($userId)
             ->pending()
-            ->orderBy('queue_order')
             ->orderBy('created_at')
             ->get()
             ->map(fn($t) => $this->format($t));
@@ -55,7 +54,7 @@ class TaskController extends Controller
         $userId = Auth::id();
 
         // Determine queue position (append to end)
-        $maxOrder = Task::forUser($userId)->pending()->max('queue_order') ?? 0;
+      
 
         $task = Task::create([
             'user_id'           => $userId,
@@ -64,7 +63,7 @@ class TaskController extends Controller
             'estimated_minutes' => $data['estimated_minutes'],
             'actual_minutes'    => 0,
             'status'            => 'queued',
-            'queue_order'       => $maxOrder + 1,
+           
         ]);
 
         // "Add and Start Task" — activate immediately
@@ -87,7 +86,7 @@ class TaskController extends Controller
 
     /**
      * PATCH /api/tasks/{task}
-     * Update title, notes, estimated_minutes, or queue_order.
+     * Update title, notes, estimated_minutes,.
      */
     public function update(Request $request, Task $task): JsonResponse
     {
@@ -97,7 +96,7 @@ class TaskController extends Controller
             'title'             => 'sometimes|string|max:255',
             'notes'             => 'nullable|string',
             'estimated_minutes' => 'sometimes|integer|min:5|max:480',
-            'queue_order'       => 'sometimes|integer|min:0',
+           
             'status'            => 'sometimes|in:queued,active,paused,completed',
         ]);
 
@@ -216,7 +215,7 @@ class TaskController extends Controller
             'actual_minutes'    => $task->actual_minutes,
             'sprint_count'      => $task->sprintCount(),
             'status'            => $task->status,
-            'queue_order'       => $task->queue_order,
+           
             'started_at'        => $task->started_at?->toIso8601String(),
             'completed_at'      => $task->completed_at?->toIso8601String(),
             'created_at'        => $task->created_at->toIso8601String(),
