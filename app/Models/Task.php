@@ -4,53 +4,67 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'user_id',
         'title',
         'notes',
         'estimated_minutes',
-        'actual_minutes',
-        'status',
-        'queue_order',
+        'status', // 'queued', 'active', 'paused', 'completed'
         'started_at',
         'completed_at',
     ];
 
     protected $casts = [
-        'started_at'   => 'datetime',
+        'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
-    // ── Relationships ──────────────────────────────────────────────
-    public function user()
+    /**
+     * Get the user who owns this task.
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function focusSessions()
+    /**
+     * Get all focus intervals logged for this task.
+     */
+    public function focusSessions(): HasMany
     {
         return $this->hasMany(FocusSession::class);
     }
 
-    // ── Scopes ─────────────────────────────────────────────────────
-    public function scopeForUser($query, $userId)
+    /**
+     * Accessor: Calculate total actual minutes spent on this task dynamically.
+     * Usage: $task->actual_minutes
+     */
+    public function getActualMinutesAttribute(): int
     {
-        return $query->where('user_id', $userId);
+        $totalSeconds = $this->focusSessions()->sum('duration_seconds');
+        return (int) round($totalSeconds / 60);
     }
 
-    public function scopePending($query)
+    /**
+     * Accessor: Count how many full sprints were successfully completed.
+     * Usage: $task->completed_sprints_count
+     */
+    public function getCompletedSprintsCountAttribute(): int
     {
-        return $query->whereIn('status', ['queued', 'active', 'paused']);
+        return $this->focusSessions()->where('is_completed_sprint', true)->count();
     }
 
-    // ── Helpers ────────────────────────────────────────────────────
-    public function sprintCount(): int
+    /**
+     * Accessor: Check if the user went over their original estimate.
+     * Usage: $task->is_overrun
+     */
+    public function getIsOverrunAttribute(): bool
     {
-        return (int) ceil($this->estimated_minutes / 25);
+        return $this->actual_minutes > $this->estimated_minutes;
     }
 }
