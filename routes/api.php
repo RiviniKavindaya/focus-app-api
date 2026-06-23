@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,5 +47,10 @@ Route::middleware('auth:api')->group(function () {
         Route::post('{task}/pause', [TaskController::class, 'pause']);
         Route::post('{task}/complete', [TaskController::class, 'complete']);
     });
+
+    // Settings
+    Route::get('/settings', [SettingsController::class, 'index']);
+    Route::post('/settings', [SettingsController::class, 'store']);
+    Route::post('/settings/reset', [SettingsController::class, 'reset']);
 
 });
