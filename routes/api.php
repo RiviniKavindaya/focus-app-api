@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ProgressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,5 +53,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::post('/settings', [SettingsController::class, 'store']);
     Route::post('/settings/reset', [SettingsController::class, 'reset']);
+
+
+    Route::get('/progress', [ProgressController::class, 'index']);
 
 });
